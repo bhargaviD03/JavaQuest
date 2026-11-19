@@ -1,0 +1,58 @@
+version: '3.8'
+
+services:
+  # ==============================================================================
+  # Unified JavaQuest Service (Frontend SPA + FastAPI Backend on Single Port 8000)
+  # When deployed, the backend serves the React frontend, static assets, and API.
+  # ==============================================================================
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: javaquest_app
+    restart: always
+    ports:
+      - "${PORT:-8000}:8000"
+    environment:
+      # Database connection: Set this to your Neon PostgreSQL connection string.
+      # Neon Format: postgresql://[user]:[password]@[endpoint].neon.tech/[dbname]?sslmode=require
+      DATABASE_URL: ${DATABASE_URL:-postgresql://postgres:postgres@db:5432/javaquest}
+      
+      # Initial Admin / Learner User (Configurable via ENV, seeded into DB automatically on startup)
+      DEFAULT_USER_EMAIL: ${DEFAULT_USER_EMAIL:-bhargavi.cse03@gmail.com}
+      DEFAULT_USER_PASSWORD: ${DEFAULT_USER_PASSWORD:-JavaDev@2602}
+      DEFAULT_USER_USERNAME: ${DEFAULT_USER_USERNAME:-bhargavi}
+      
+      # Application Security & AI Configuration
+      SECRET_KEY: ${SECRET_KEY:-javaquest-super-secret-production-grade-key-2026}
+      AI_PROVIDER: ${AI_PROVIDER:-mock}
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+    depends_on:
+      db:
+        condition: service_healthy
+        required: false
+
+  # ==============================================================================
+  # Local PostgreSQL Database (Fallback for offline development when Neon is unset)
+  # ==============================================================================
+  db:
+    image: postgres:16-alpine
+    container_name: javaquest_postgres
+    restart: always
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DB: ${POSTGRES_DB:-javaquest}
+    ports:
+      - "${POSTGRES_PORT:-5310}:5432"
+    volumes:
+      - javaquest_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  javaquest_pgdata:

@@ -1,0 +1,799 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>JavaQuest — Complete 2.5D Game Ecosystem & Java IDE</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            mono: ['Fira Code', 'monospace']
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body { font-family: 'Inter', sans-serif; background-color: #020617; color: #f8fafc; }
+    .code-font { font-family: 'Fira Code', monospace; }
+
+    @keyframes pulse-incubator {
+      0%, 100% { filter: drop-shadow(0 0 15px rgba(52, 211, 153, 0.4)); transform: scale(1); }
+      50% { filter: drop-shadow(0 0 30px rgba(52, 211, 153, 0.8)); transform: scale(1.02); }
+    }
+    .pulse-incubator { animation: pulse-incubator 2.5s infinite ease-in-out; }
+
+    @keyframes creature-hop {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-12px) rotate(3deg); }
+    }
+    .creature-active { animation: creature-hop 0.8s infinite ease-in-out; }
+
+    @keyframes radar-sweep {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    .radar-spin { animation: radar-sweep 4s linear infinite; }
+
+    .iso-grid {
+      background-size: 40px 40px;
+      background-image: 
+        linear-gradient(to right, rgba(51, 65, 85, 0.25) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(51, 65, 85, 0.25) 1px, transparent 1px);
+    }
+  </style>
+</head>
+<body class="min-h-screen selection:bg-emerald-500 selection:text-white pb-24">
+
+  <!-- TOP HEADER -->
+  <header class="border-b border-slate-800 bg-slate-900/90 backdrop-blur-md sticky top-0 z-50 px-6 py-4">
+    <div class="max-w-7xl mx-auto flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-emerald-500 via-teal-400 to-indigo-500 flex items-center justify-center shadow-lg shadow-emerald-500/20 font-extrabold text-slate-950 text-xl">
+          ⚡
+        </div>
+        <div>
+          <span class="font-extrabold text-xl text-white tracking-tight flex items-center gap-2">
+            JavaQuest <span class="text-xs px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 font-mono font-bold">2.5D Game Ecosystem</span>
+          </span>
+          <p class="text-[11px] text-slate-400">Where Code Drives the Game World • 6 Themed Simulations</p>
+        </div>
+      </div>
+
+      <!-- Navigation for the 6 Games -->
+      <div class="flex items-center gap-1.5 bg-slate-950/80 p-1.5 rounded-2xl border border-slate-800 flex-wrap">
+        <button onclick="switchGameWorld('creature')" id="nav-creature" class="nav-game-btn text-xs px-3 py-1.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-400 text-slate-950 font-bold transition-all shadow-md">
+          🦁 1. Creature Creator
+        </button>
+        <button onclick="switchGameWorld('restaurant')" id="nav-restaurant" class="nav-game-btn text-xs px-3 py-1.5 rounded-xl text-slate-400 hover:text-white transition-all font-medium">
+          🍔 2. Restaurant Tycoon
+        </button>
+        <button onclick="switchGameWorld('colony')" id="nav-colony" class="nav-game-btn text-xs px-3 py-1.5 rounded-xl text-slate-400 hover:text-white transition-all font-medium">
+          🚀 3. Space Colony
+        </button>
+        <button onclick="switchGameWorld('studio')" id="nav-studio" class="nav-game-btn text-xs px-3 py-1.5 rounded-xl text-slate-400 hover:text-white transition-all font-medium">
+          🎮 4. Game Studio
+        </button>
+        <button onclick="switchGameWorld('forensics')" id="nav-forensics" class="nav-game-btn text-xs px-3 py-1.5 rounded-xl text-slate-400 hover:text-white transition-all font-medium">
+          🕵️ 5. Java Forensics
+        </button>
+        <button onclick="switchGameWorld('architecture')" id="nav-architecture" class="nav-game-btn text-xs px-3 py-1.5 rounded-xl text-slate-400 hover:text-white transition-all font-medium">
+          🏛️ 6. Architecture
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- HERO CONCEPT INTRO -->
+  <section class="max-w-7xl mx-auto px-6 py-8 text-center space-y-3">
+    <div class="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 text-xs font-semibold uppercase tracking-wider">
+      <span>Actual Java Code Execution &rarr; Visible Game World Reaction</span>
+    </div>
+    <h1 class="text-3xl md:text-5xl font-extrabold text-white tracking-tight leading-tight max-w-4xl mx-auto">
+      Don't teach Java through questions. <br>
+      <span class="bg-gradient-to-r from-emerald-400 via-teal-300 to-cyan-400 bg-clip-text text-transparent">
+        Create worlds where code is necessary to survive and build.
+      </span>
+    </h1>
+    <p class="text-slate-300 max-w-2xl mx-auto text-xs md:text-sm leading-relaxed">
+      Write actual Java in the integrated IDE below. When your code compiles, watch the 2.5D game world physically mutate, animate, and execute your logic in real time!
+    </p>
+  </section>
+
+  <!-- ========================================================================= -->
+  <!-- GAME 1: CREATURE CREATOR (OOP, CLASSES, CONSTRUCTORS, POLYMORPHISM)       -->
+  <!-- ========================================================================= -->
+  <section id="game-sec-creature" class="game-world-sec max-w-7xl mx-auto px-6 space-y-6">
+    <div class="rounded-3xl border border-emerald-900/50 bg-slate-900/60 p-6 md:p-8 space-y-6 shadow-2xl">
+      <!-- Title & Mission Header -->
+      <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-800 pb-4">
+        <div>
+          <span class="text-xs font-mono text-emerald-400 font-bold uppercase tracking-wider">GAME 1: FANTASY CREATURE LABORATORY</span>
+          <h2 class="text-2xl font-extrabold text-white mt-1">🦁 Creature Creator: Bring Objects to Life</h2>
+          <p class="text-xs text-slate-400">Level 5: Method Implementation &bull; Implement eat(), sleep(), and attack() to power your creature.</p>
+        </div>
+        <div class="flex items-center gap-3">
+          <span class="text-xs px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-300 font-mono font-bold">Level 5 / 10</span>
+          <span class="text-xs px-3 py-1 rounded-full bg-slate-800 text-slate-300 font-mono font-bold">+75 XP</span>
+        </div>
+      </div>
+
+      <!-- Main Game Composition: 2.5D World (Left/Top) + Context & Monaco Editor (Right/Bottom) -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <!-- 2.5D Fantasy Laboratory Canvas (7 cols) -->
+        <div class="lg:col-span-7 rounded-2xl border border-slate-800 bg-slate-950 p-6 flex flex-col justify-between min-h-[460px] relative overflow-hidden iso-grid">
+          <!-- Laboratory Environment HUD -->
+          <div class="flex items-center justify-between text-xs font-mono z-10 border-b border-slate-800/80 pb-2">
+            <span class="text-emerald-400 font-bold">Biometric Chamber A-1</span>
+            <span id="creature-state-tag" class="text-amber-400 font-bold">⚡ AWAITING METHOD COMPILATION</span>
+          </div>
+
+          <!-- 2.5D Laboratory Centerpiece -->
+          <div class="my-auto flex flex-col items-center justify-center relative z-10">
+            <!-- Incubation Chamber Glass Dome -->
+            <div id="incubation-pod" class="w-64 h-64 rounded-full border-4 border-emerald-500/50 bg-gradient-to-b from-emerald-950/40 via-slate-950/80 to-emerald-950/40 flex flex-col items-center justify-center relative shadow-2xl pulse-incubator">
+              <!-- Creature Sprite (Animates on Java Execution) -->
+              <div id="creature-sprite" class="text-6xl transition-all duration-500">
+                🥚
+              </div>
+              <!-- Biometric Rings -->
+              <div class="absolute inset-0 rounded-full border border-dashed border-emerald-400/30 animate-spin" style="animation-duration: 20s;"></div>
+
+              <div class="mt-3 text-center">
+                <strong id="creature-name-display" class="text-sm font-mono text-white block">Uninstantiated Blueprint</strong>
+                <span id="creature-stats-display" class="text-[10px] font-mono text-slate-400">HP: -- | Energy: -- | Species: null</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Habitat Controls & Live Reactions -->
+          <div class="pt-3 border-t border-slate-800 flex items-center justify-between z-10 text-xs font-mono">
+            <div class="flex items-center gap-2">
+              <button onclick="testCreatureAction('eat')" id="btn-action-eat" disabled class="px-3 py-1.5 rounded-lg bg-slate-800 text-slate-500 border border-slate-700 transition-all">
+                🍖 invoke eat()
+              </button>
+              <button onclick="testCreatureAction('attack')" id="btn-action-attack" disabled class="px-3 py-1.5 rounded-lg bg-slate-800 text-slate-500 border border-slate-700 transition-all">
+                🔥 invoke attack()
+              </button>
+              <button onclick="testCreatureAction('sleep')" id="btn-action-sleep" disabled class="px-3 py-1.5 rounded-lg bg-slate-800 text-slate-500 border border-slate-700 transition-all">
+                💤 invoke sleep()
+              </button>
+            </div>
+            <span id="creature-log" class="text-[11px] text-slate-400 font-mono">Compile Java code to hatch creature</span>
+          </div>
+        </div>
+
+        <!-- Right: Contextual Learning & Monaco Code IDE (5 cols) -->
+        <div class="lg:col-span-5 rounded-2xl border border-slate-800 bg-slate-950 p-5 space-y-4 flex flex-col justify-between shadow-2xl">
+          <div class="space-y-3">
+            <div class="flex items-center justify-between border-b border-slate-800 pb-2">
+              <span class="text-xs font-mono font-bold text-emerald-400 uppercase">Contextual Mission</span>
+              <span class="text-[10px] text-slate-400 font-mono">Creature.java</span>
+            </div>
+            <p class="text-xs text-slate-300 leading-relaxed font-mono">
+              In Java, a class defines the blueprint. Methods define the actual physical abilities. Implement <code class="text-emerald-300">attack()</code> so it expends 20 energy and returns 50 damage!
+            </p>
+
+            <!-- Embedded Monaco Code Editor Look -->
+            <div class="rounded-xl border border-slate-800 bg-slate-900/95 overflow-hidden">
+              <div class="bg-slate-950 px-3 py-1.5 border-b border-slate-800 flex items-center justify-between text-[11px] font-mono text-slate-400">
+                <span>Creature.java</span>
+                <span class="text-emerald-400">JDK 21 HotSpot</span>
+              </div>
+              <textarea id="code-creature-editor" rows="11" class="w-full bg-slate-900/90 text-emerald-300 rounded-b-xl p-3 font-mono text-xs focus:outline-none focus:ring-1 focus:ring-emerald-400 border-none leading-relaxed" spellcheck="false">public class Creature {
+    private String name = "IgnisDragon";
+    private int energy = 100;
+
+    public int attack() {
+        if (this.energy >= 20) {
+            this.energy -= 20;
+            return 50; // Plasma strike damage
+        }
+        return 0; // Out of energy
+    }
+
+    public void eat() { this.energy += 30; }
+}</textarea>
+            </div>
+          </div>
+
+          <!-- Execution Bar & Diagnostics Console -->
+          <div class="space-y-2">
+            <button onclick="compileAndRunCreatureCode()" class="w-full py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-400 hover:from-emerald-400 hover:to-teal-300 text-slate-950 font-bold text-xs flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/20 transition-all">
+              <span>▶ Compile & Execute Java Code</span>
+            </button>
+            <div id="creature-terminal-console" class="p-2.5 rounded-xl bg-slate-900 border border-slate-800 text-[11px] font-mono text-slate-400">
+              $ javac Creature.java &bull; Ready for execution.
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========================================================================= -->
+  <!-- GAME 2: RESTAURANT TYCOON (CONTROL FLOW, ARRAYS, ARRAYLIST, EXCEPTIONS)   -->
+  <!-- ========================================================================= -->
+  <section id="game-sec-restaurant" class="game-world-sec hidden max-w-7xl mx-auto px-6 space-y-6">
+    <div class="rounded-3xl border border-amber-900/50 bg-slate-900/60 p-6 md:p-8 space-y-6 shadow-2xl">
+      <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-800 pb-4">
+        <div>
+          <span class="text-xs font-mono text-amber-400 font-bold uppercase tracking-wider">GAME 2: ISOMETRIC RESTAURANT SIMULATION</span>
+          <h2 class="text-2xl font-extrabold text-white mt-1">🍔 Restaurant Tycoon: Control Flow & Collections</h2>
+          <p class="text-xs text-slate-400">Level 5: Loops & ArrayList &bull; Process customer orders dynamically and handle out-of-stock exceptions.</p>
+        </div>
+        <div class="flex items-center gap-3">
+          <span class="text-xs px-3 py-1 rounded-full bg-amber-500/20 text-amber-300 font-mono font-bold">Revenue: $480</span>
+          <span class="text-xs px-3 py-1 rounded-full bg-slate-800 text-slate-300 font-mono font-bold">+60 XP</span>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <!-- 2.5D Restaurant Dining & Kitchen Floor (7 cols) -->
+        <div class="lg:col-span-7 rounded-2xl border border-slate-800 bg-slate-950 p-6 flex flex-col justify-between min-h-[460px] relative overflow-hidden iso-grid">
+          <div class="flex items-center justify-between text-xs font-mono border-b border-slate-800 pb-2">
+            <span class="text-amber-300 font-bold">Table Queue: 3 Waiting Parties</span>
+            <span id="rest-status-badge" class="text-slate-400">Order Processing: IDLE</span>
+          </div>
+
+          <!-- Restaurant Floor Isometric Mockup -->
+          <div class="grid grid-cols-3 gap-4 my-auto">
+            <!-- Table 1 -->
+            <div id="rest-table-1" class="p-4 rounded-2xl bg-slate-900 border border-slate-800 text-center space-y-2">
+              <span class="text-3xl">👨‍👩‍👧</span>
+              <strong class="text-xs font-mono text-slate-200 block">Table 1: Order #101</strong>
+              <span id="bill-1" class="text-[10px] text-amber-400 font-mono font-bold">Order: Burger x 2</span>
+            </div>
+            <!-- Table 2 -->
+            <div id="rest-table-2" class="p-4 rounded-2xl bg-slate-900 border border-slate-800 text-center space-y-2">
+              <span class="text-3xl">🧑‍💻</span>
+              <strong class="text-xs font-mono text-slate-200 block">Table 2: Order #102</strong>
+              <span id="bill-2" class="text-[10px] text-amber-400 font-mono font-bold">Order: Pizza x 1</span>
+            </div>
+            <!-- Kitchen Stove -->
+            <div class="p-4 rounded-2xl bg-amber-950/40 border border-amber-500/40 text-center space-y-2">
+              <span class="text-3xl">🍳</span>
+              <strong class="text-xs font-mono text-amber-300 block">Kitchen Stove</strong>
+              <span id="rest-stove-status" class="text-[10px] text-slate-400 font-mono">Loop waiting for code</span>
+            </div>
+          </div>
+
+          <div class="pt-3 border-t border-slate-800 flex items-center justify-between text-xs font-mono">
+            <span id="rest-log" class="text-slate-400">Implement order processing loop to serve customers.</span>
+            <span class="text-emerald-400 font-bold">Inventory: 20 Items</span>
+          </div>
+        </div>
+
+        <!-- Code Workspace -->
+        <div class="lg:col-span-5 rounded-2xl border border-slate-800 bg-slate-950 p-5 space-y-4 flex flex-col justify-between shadow-2xl">
+          <div class="space-y-3">
+            <span class="text-xs font-mono font-bold text-amber-400 uppercase">Contextual Mission</span>
+            <p class="text-xs text-slate-300 font-mono leading-relaxed">
+              Use a Java <code class="text-amber-300">for-each</code> loop to iterate over the orders <code class="text-amber-300">List&lt;Double&gt;</code> and calculate the total bill with a 10% discount!
+            </p>
+            <textarea id="code-rest-editor" rows="11" class="w-full bg-slate-900 text-amber-200 rounded-xl p-3 font-mono text-xs border border-slate-800 focus:outline-none focus:border-amber-400" spellcheck="false">public class BillingSystem {
+    public double calculateTotal(List<Double> itemPrices) {
+        double subtotal = 0.0;
+        for (double price : itemPrices) {
+            subtotal += price;
+        }
+        double discount = subtotal * 0.10;
+        return subtotal - discount;
+    }
+}</textarea>
+          </div>
+          <button onclick="compileRestaurantCode()" class="w-full py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs flex items-center justify-center gap-2 shadow-lg shadow-amber-500/20">
+            <span>▶ Compile & Process Orders</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========================================================================= -->
+  <!-- GAME 3: SPACE COLONY (INTERFACES, GENERICS, STREAMS, CONCURRENCY)          -->
+  <!-- ========================================================================= -->
+  <section id="game-sec-colony" class="game-world-sec hidden max-w-7xl mx-auto px-6 space-y-6">
+    <div class="rounded-3xl border border-sky-900/50 bg-slate-900/60 p-6 md:p-8 space-y-6 shadow-2xl">
+      <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-800 pb-4">
+        <div>
+          <span class="text-xs font-mono text-sky-400 font-bold uppercase tracking-wider">GAME 3: 2.5D SCI-FI SIMULATION</span>
+          <h2 class="text-2xl font-extrabold text-white mt-1">🚀 Space Colony: Concurrent Life Support</h2>
+          <p class="text-xs text-slate-400">Level 8: Concurrency & Synchronization &bull; Protect shared oxygen reserves against multi-threaded race conditions.</p>
+        </div>
+        <div class="flex items-center gap-3">
+          <span class="text-xs px-3 py-1 rounded-full bg-sky-500/20 text-sky-300 font-mono font-bold">Colony Stability: 94%</span>
+          <span class="text-xs px-3 py-1 rounded-full bg-slate-800 text-slate-300 font-mono font-bold">+85 XP</span>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <!-- 2.5D Colony Habitat (7 cols) -->
+        <div class="lg:col-span-7 rounded-2xl border border-slate-800 bg-slate-950 p-6 flex flex-col justify-between min-h-[460px] relative overflow-hidden iso-grid">
+          <div class="flex items-center justify-between text-xs font-mono border-b border-slate-800 pb-2">
+            <span class="text-sky-400 font-bold">ARES OUTPOST: Biosphere Alpha</span>
+            <span id="colony-sync-badge" class="text-amber-400 font-bold">Thread Worker: READY</span>
+          </div>
+
+          <!-- Life Support Gauges -->
+          <div class="grid grid-cols-3 gap-4 my-auto">
+            <div class="p-4 rounded-2xl bg-slate-900 border border-slate-800 text-center space-y-1">
+              <span class="text-3xl">💨</span>
+              <span class="text-xs font-mono text-slate-400 block">Oxygen Tank</span>
+              <strong id="colony-o2-val" class="text-sky-300 font-bold text-sm">850 L</strong>
+            </div>
+            <div class="p-4 rounded-2xl bg-slate-900 border border-slate-800 text-center space-y-1">
+              <span class="text-3xl">⚡</span>
+              <span class="text-xs font-mono text-slate-400 block">Power Generator</span>
+              <strong class="text-amber-300 font-bold text-sm">92% Operational</strong>
+            </div>
+            <div class="p-4 rounded-2xl bg-slate-900 border border-slate-800 text-center space-y-1">
+              <span class="text-3xl">🧑‍🚀</span>
+              <span class="text-xs font-mono text-slate-400 block">Crew Quarters</span>
+              <strong class="text-emerald-300 font-bold text-sm">12 Crew Members</strong>
+            </div>
+          </div>
+
+          <div class="pt-3 border-t border-slate-800 flex items-center justify-between text-xs font-mono">
+            <span id="colony-log" class="text-slate-400">Implement thread-safe synchronized oxygen consumer.</span>
+            <span class="text-sky-400 font-bold">AtomicInteger Sync</span>
+          </div>
+        </div>
+
+        <!-- Code IDE -->
+        <div class="lg:col-span-5 rounded-2xl border border-slate-800 bg-slate-950 p-5 space-y-4 flex flex-col justify-between shadow-2xl">
+          <div class="space-y-3">
+            <span class="text-xs font-mono font-bold text-sky-400 uppercase">Contextual Mission</span>
+            <p class="text-xs text-slate-300 font-mono leading-relaxed">
+              Multiple worker threads consume oxygen simultaneously. Use <code class="text-sky-300">synchronized</code> or <code class="text-sky-300">AtomicInteger</code> to prevent race conditions!
+            </p>
+            <textarea id="code-colony-editor" rows="11" class="w-full bg-slate-900 text-sky-200 rounded-xl p-3 font-mono text-xs border border-slate-800 focus:outline-none focus:border-sky-400" spellcheck="false">public class LifeSupportManager {
+    private AtomicInteger oxygen = new AtomicInteger(850);
+
+    public boolean consumeOxygen(int amount) {
+        while (true) {
+            int current = oxygen.get();
+            if (current < amount) return false;
+            if (oxygen.compareAndSet(current, current - amount)) {
+                return true; // Thread-safe CAS update
+            }
+        }
+    }
+}</textarea>
+          </div>
+          <button onclick="compileColonyCode()" class="w-full py-2.5 rounded-xl bg-sky-500 hover:bg-sky-400 text-slate-950 font-bold text-xs flex items-center justify-center gap-2 shadow-lg shadow-sky-500/20">
+            <span>▶ Compile & Run Life Support Threads</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========================================================================= -->
+  <!-- GAME 4: JAVA GAME STUDIO (DESIGN PATTERNS, PLAYABLE MINI-GAME)             -->
+  <!-- ========================================================================= -->
+  <section id="game-sec-studio" class="game-world-sec hidden max-w-7xl mx-auto px-6 space-y-6">
+    <div class="rounded-3xl border border-purple-900/50 bg-slate-900/60 p-6 md:p-8 space-y-6 shadow-2xl">
+      <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-800 pb-4">
+        <div>
+          <span class="text-xs font-mono text-purple-400 font-bold uppercase tracking-wider">GAME 4: INTERACTIVE GAME STUDIO</span>
+          <h2 class="text-2xl font-extrabold text-white mt-1">🎮 Java Game Studio: Build Your Own Game</h2>
+          <p class="text-xs text-slate-400">Level 4: Entity Interfaces &bull; Code player abilities using interfaces; then play your mini-game directly!</p>
+        </div>
+        <div class="flex items-center gap-3">
+          <span class="text-xs px-3 py-1 rounded-full bg-purple-500/20 text-purple-300 font-mono font-bold">Studio Tier: Indie Dev</span>
+          <span class="text-xs px-3 py-1 rounded-full bg-slate-800 text-slate-300 font-mono font-bold">+80 XP</span>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <!-- Live Playable Game Preview Canvas (7 cols) -->
+        <div class="lg:col-span-7 rounded-2xl border border-slate-800 bg-slate-950 p-6 flex flex-col justify-between min-h-[460px] relative overflow-hidden">
+          <div class="flex items-center justify-between text-xs font-mono border-b border-slate-800 pb-2">
+            <span class="text-purple-400 font-bold">Playable Mini-Game Preview [Phaser 3 Engine]</span>
+            <span id="studio-status-badge" class="text-slate-400">Status: Waiting for Java Entity Class</span>
+          </div>
+
+          <!-- Playable Arena -->
+          <div class="my-auto flex items-center justify-between px-12 relative">
+            <div id="studio-player" class="text-center space-y-1">
+              <span class="text-5xl">🧙‍♂️</span>
+              <strong class="text-xs font-mono text-purple-300 block">JavaPlayer</strong>
+              <span id="studio-player-hp" class="text-[10px] text-emerald-400 font-mono">HP: 100</span>
+            </div>
+
+            <div id="studio-combat-fx" class="text-2xl font-mono text-purple-400 font-bold hidden">
+              ⚡ FIREBALL 50 DMG!
+            </div>
+
+            <div id="studio-enemy" class="text-center space-y-1">
+              <span class="text-5xl">👹</span>
+              <strong class="text-xs font-mono text-rose-300 block">GoblinEnemy</strong>
+              <span id="studio-enemy-hp" class="text-[10px] text-rose-400 font-mono">HP: 80</span>
+            </div>
+          </div>
+
+          <div class="pt-3 border-t border-slate-800 flex items-center justify-between text-xs font-mono">
+            <button onclick="triggerStudioFight()" id="btn-studio-fight" disabled class="px-4 py-2 rounded-xl bg-slate-800 text-slate-500 border border-slate-700">
+              ⚔️ Playable Test: Attack Enemy
+            </button>
+            <span id="studio-log" class="text-slate-400">Implement Attackable interface to enable combat.</span>
+          </div>
+        </div>
+
+        <!-- Code IDE -->
+        <div class="lg:col-span-5 rounded-2xl border border-slate-800 bg-slate-950 p-5 space-y-4 flex flex-col justify-between shadow-2xl">
+          <div class="space-y-3">
+            <span class="text-xs font-mono font-bold text-purple-400 uppercase">Contextual Mission</span>
+            <p class="text-xs text-slate-300 font-mono leading-relaxed">
+              Implement the <code class="text-purple-300">Attackable</code> interface on <code class="text-purple-300">GamePlayer</code> so your character can inflict real damage in the mini-game!
+            </p>
+            <textarea id="code-studio-editor" rows="11" class="w-full bg-slate-900 text-purple-200 rounded-xl p-3 font-mono text-xs border border-slate-800 focus:outline-none focus:border-purple-400" spellcheck="false">public class GamePlayer implements Attackable {
+    private int attackPower = 50;
+
+    @Override
+    public int executeAttack() {
+        return this.attackPower;
+    }
+}</textarea>
+          </div>
+          <button onclick="compileStudioCode()" class="w-full py-2.5 rounded-xl bg-purple-500 hover:bg-purple-400 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-lg shadow-purple-500/20">
+            <span>▶ Compile & Load Mini-Game</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========================================================================= -->
+  <!-- GAME 5: JAVA FORENSICS (STACK TRACES, MEMORY LEAKS, DEADLOCKS, BYTECODE)  -->
+  <!-- ========================================================================= -->
+  <section id="game-sec-forensics" class="game-world-sec hidden max-w-7xl mx-auto px-6 space-y-6">
+    <div class="rounded-3xl border border-rose-900/50 bg-slate-900/60 p-6 md:p-8 space-y-6 shadow-2xl">
+      <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-800 pb-4">
+        <div>
+          <span class="text-xs font-mono text-rose-400 font-bold uppercase tracking-wider">GAME 5: CYBER INCIDENT INVESTIGATION</span>
+          <h2 class="text-2xl font-extrabold text-white mt-1">🕵️ Java Forensics: Production Outage</h2>
+          <p class="text-xs text-slate-400">Incident #504: NullPointerException & Memory Leak &bull; Inspect live stack trace and apply hotfix.</p>
+        </div>
+        <div class="flex items-center gap-3">
+          <span class="text-xs px-3 py-1 rounded-full bg-rose-500/20 text-rose-300 font-mono font-bold">Severity: CRITICAL P1</span>
+          <span class="text-xs px-3 py-1 rounded-full bg-slate-800 text-slate-300 font-mono font-bold">+90 XP</span>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <!-- Noir Investigation Board (7 cols) -->
+        <div class="lg:col-span-7 rounded-2xl border border-slate-800 bg-slate-950 p-6 flex flex-col justify-between min-h-[460px] relative overflow-hidden">
+          <div class="flex items-center justify-between text-xs font-mono border-b border-slate-800 pb-2">
+            <span class="text-rose-400 font-bold">WAR ROOM: Server Diagnostics Stream</span>
+            <span id="forensics-badge" class="px-2 py-0.5 rounded bg-rose-500/20 text-rose-400 font-bold">SYSTEM CRASHED ❌</span>
+          </div>
+
+          <!-- Stack Trace Evidence Monitor -->
+          <div class="p-4 rounded-xl bg-slate-900/90 border border-rose-500/40 font-mono text-xs space-y-2 my-auto">
+            <span class="text-rose-400 font-bold block">🚨 java.lang.NullPointerException: Cannot invoke List.add(Object)</span>
+            <p class="text-slate-400 text-[11px] pl-3">
+              at com.javaquest.server.OrderService.enrollCustomer(OrderService.java:14)<br>
+              at com.javaquest.server.MainController.handleRequest(MainController.java:28)
+            </p>
+            <div class="mt-2 pt-2 border-t border-slate-800 text-[11px] text-amber-300">
+              <strong>Root Cause:</strong> <code class="text-rose-300">private List&lt;Customer&gt; customers;</code> was declared but never instantiated in constructor!
+            </div>
+          </div>
+
+          <div class="pt-3 border-t border-slate-800 flex items-center justify-between text-xs font-mono">
+            <span id="forensics-log" class="text-slate-400">Patch OrderService.java to restore server health.</span>
+            <span class="text-slate-500">Log ID: #SEC-9842</span>
+          </div>
+        </div>
+
+        <!-- Code IDE -->
+        <div class="lg:col-span-5 rounded-2xl border border-slate-800 bg-slate-950 p-5 space-y-4 flex flex-col justify-between shadow-2xl">
+          <div class="space-y-3">
+            <span class="text-xs font-mono font-bold text-rose-400 uppercase">Contextual Mission</span>
+            <p class="text-xs text-slate-300 font-mono leading-relaxed">
+              Initialize the collection in the constructor to resolve the crash and restore 100% server uptime!
+            </p>
+            <textarea id="code-forensics-editor" rows="11" class="w-full bg-slate-900 text-rose-200 rounded-xl p-3 font-mono text-xs border border-slate-800 focus:outline-none focus:border-rose-400" spellcheck="false">public class OrderService {
+    private List<Customer> customers;
+
+    public OrderService() {
+        // Hotfix: Instantiate list to prevent NPE
+        this.customers = new ArrayList<>();
+    }
+
+    public void enrollCustomer(Customer c) {
+        this.customers.add(c);
+    }
+}</textarea>
+          </div>
+          <button onclick="compileForensicsCode()" class="w-full py-2.5 rounded-xl bg-rose-500 hover:bg-rose-400 text-slate-950 font-bold text-xs flex items-center justify-center gap-2 shadow-lg shadow-rose-500/20">
+            <span>▶ Apply Hotfix & Re-deploy</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========================================================================= -->
+  <!-- GAME 6: JAVA ARCHITECTURE (SOLID, JDBC, SPRING BOOT, REST APIS, JPA)       -->
+  <!-- ========================================================================= -->
+  <section id="game-sec-architecture" class="game-world-sec hidden max-w-7xl mx-auto px-6 space-y-6">
+    <div class="rounded-3xl border border-teal-900/50 bg-slate-900/60 p-6 md:p-8 space-y-6 shadow-2xl">
+      <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-800 pb-4">
+        <div>
+          <span class="text-xs font-mono text-teal-400 font-bold uppercase tracking-wider">GAME 6: ENTERPRISE SOFTWARE ARCHITECTURE</span>
+          <h2 class="text-2xl font-extrabold text-white mt-1">🏛️ Architecture Architect: Spring Boot REST API</h2>
+          <p class="text-xs text-slate-400">Level 6: REST Controllers &bull; Implement @RestController endpoint to serve JSON data to clients.</p>
+        </div>
+        <div class="flex items-center gap-3">
+          <span class="text-xs px-3 py-1 rounded-full bg-teal-500/20 text-teal-300 font-mono font-bold">Sprint 4 Complete</span>
+          <span class="text-xs px-3 py-1 rounded-full bg-slate-800 text-slate-300 font-mono font-bold">+100 XP</span>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <!-- Live REST API Client & Component Topology (7 cols) -->
+        <div class="lg:col-span-7 rounded-2xl border border-slate-800 bg-slate-950 p-6 flex flex-col justify-between min-h-[460px] relative overflow-hidden">
+          <div class="flex items-center justify-between text-xs font-mono border-b border-slate-800 pb-2">
+            <span class="text-teal-400 font-bold">Spring Boot Microservice Topology</span>
+            <span class="text-emerald-400 font-bold">Port: 8080</span>
+          </div>
+
+          <!-- Architecture Map -->
+          <div class="my-auto space-y-4">
+            <div class="p-3 rounded-xl bg-slate-900 border border-slate-800 flex items-center justify-between text-xs font-mono">
+              <span class="text-slate-400">Client HTTP Request:</span>
+              <code class="text-amber-300 font-bold">GET /api/v1/students</code>
+            </div>
+
+            <!-- Response Window -->
+            <div class="p-4 rounded-xl bg-slate-900/90 border border-teal-500/40 text-xs font-mono space-y-1">
+              <div class="flex items-center justify-between border-b border-slate-800 pb-1">
+                <span id="api-status-code" class="text-slate-400">HTTP Status: 404 Not Found</span>
+                <span class="text-[10px] text-slate-500">application/json</span>
+              </div>
+              <pre id="api-response-json" class="text-slate-500 text-[11px] pt-2 whitespace-pre-wrap">{ "error": "Endpoint not implemented yet" }</pre>
+            </div>
+          </div>
+
+          <div class="pt-3 border-t border-slate-800 flex items-center justify-between text-xs font-mono">
+            <button onclick="testRestEndpoint()" id="btn-test-api" disabled class="px-4 py-2 rounded-xl bg-slate-800 text-slate-500 border border-slate-700">
+              ⚡ Send Test HTTP Request
+            </button>
+            <span id="arch-log" class="text-slate-400">Implement StudentController to serve real JSON.</span>
+          </div>
+        </div>
+
+        <!-- Code IDE -->
+        <div class="lg:col-span-5 rounded-2xl border border-slate-800 bg-slate-950 p-5 space-y-4 flex flex-col justify-between shadow-2xl">
+          <div class="space-y-3">
+            <span class="text-xs font-mono font-bold text-teal-400 uppercase">Contextual Mission</span>
+            <p class="text-xs text-slate-300 font-mono leading-relaxed">
+              Annotate with <code class="text-teal-300">@RestController</code> and <code class="text-teal-300">@GetMapping</code> to return student entity lists!
+            </p>
+            <textarea id="code-arch-editor" rows="11" class="w-full bg-slate-900 text-teal-200 rounded-xl p-3 font-mono text-xs border border-slate-800 focus:outline-none focus:border-teal-400" spellcheck="false">@RestController
+@RequestMapping("/api/v1/students")
+public class StudentController {
+
+    @GetMapping
+    public List<Student> getAllStudents() {
+        return List.of(
+            new Student(1, "Aria Stark", "CS"),
+            new Student(2, "Jon Snow", "Software Eng")
+        );
+    }
+}</textarea>
+          </div>
+          <button onclick="compileArchCode()" class="w-full py-2.5 rounded-xl bg-teal-500 hover:bg-teal-400 text-slate-950 font-bold text-xs flex items-center justify-center gap-2 shadow-lg shadow-teal-500/20">
+            <span>▶ Compile Spring REST Controller</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- JAVASCRIPT GAME RUNTIME SIMULATOR -->
+  <script>
+    // Game Switcher
+    function switchGameWorld(gameKey) {
+      document.querySelectorAll('.game-world-sec').forEach(sec => sec.classList.add('hidden'));
+      document.querySelectorAll('.nav-game-btn').forEach(btn => {
+        btn.className = "nav-game-btn text-xs px-3 py-1.5 rounded-xl text-slate-400 hover:text-white transition-all font-medium";
+      });
+
+      const targetSec = document.getElementById('game-sec-' + gameKey);
+      if (targetSec) targetSec.classList.remove('hidden');
+
+      const activeNav = document.getElementById('nav-' + gameKey);
+      if (activeNav) {
+        activeNav.className = "nav-game-btn text-xs px-3 py-1.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-400 text-slate-950 font-bold transition-all shadow-md";
+      }
+    }
+
+    // GAME 1: Creature Creator Live Logic
+    let creatureHatched = false;
+    let creatureEnergy = 100;
+
+    function compileAndRunCreatureCode() {
+      const code = document.getElementById('code-creature-editor').value;
+      const consoleLog = document.getElementById('creature-terminal-console');
+      const sprite = document.getElementById('creature-sprite');
+      const nameDisp = document.getElementById('creature-name-display');
+      const statsDisp = document.getElementById('creature-stats-display');
+      const stateTag = document.getElementById('creature-state-tag');
+      const habitatLog = document.getElementById('creature-log');
+
+      consoleLog.innerHTML = '<span class="text-sky-400">Compiling with javac...</span>';
+
+      setTimeout(() => {
+        if (code.includes('attack()') && code.includes('energy') && code.includes('return')) {
+          creatureHatched = true;
+          creatureEnergy = 100;
+          consoleLog.innerHTML = '<span class="text-emerald-400 font-bold">BUILD SUCCESSFUL! (javac exited with code 0)</span><br>Instantiated Creature instance at Heap address @0x7FA2.';
+          
+          sprite.innerText = "🐉";
+          sprite.classList.add('creature-active');
+          nameDisp.innerText = "IgnisDragon (Instantiated)";
+          statsDisp.innerText = "HP: 250 | Energy: 100 | Species: Dragon";
+          stateTag.innerText = "ALIVE & OPERATIONAL ✅";
+          stateTag.className = "text-emerald-400 font-bold";
+          habitatLog.innerText = "Creature compiled! Use action buttons below to test methods.";
+
+          // Enable buttons
+          document.getElementById('btn-action-eat').disabled = false;
+          document.getElementById('btn-action-eat').className = "px-3 py-1.5 rounded-lg bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 hover:bg-emerald-500/30 transition-all font-bold";
+          document.getElementById('btn-action-attack').disabled = false;
+          document.getElementById('btn-action-attack').className = "px-3 py-1.5 rounded-lg bg-rose-500/20 text-rose-300 border border-rose-500/40 hover:bg-rose-500/30 transition-all font-bold";
+          document.getElementById('btn-action-sleep').disabled = false;
+          document.getElementById('btn-action-sleep').className = "px-3 py-1.5 rounded-lg bg-sky-500/20 text-sky-300 border border-sky-500/40 hover:bg-sky-500/30 transition-all font-bold";
+
+          confetti({ particleCount: 80, spread: 75 });
+        } else {
+          consoleLog.innerHTML = '<span class="text-rose-400 font-bold">Compilation Error:</span> attack() method missing or invalid syntax.';
+        }
+      }, 500);
+    }
+
+    function testCreatureAction(action) {
+      if (!creatureHatched) return;
+      const statsDisp = document.getElementById('creature-stats-display');
+      const habitatLog = document.getElementById('creature-log');
+      const sprite = document.getElementById('creature-sprite');
+
+      if (action === 'attack') {
+        if (creatureEnergy >= 20) {
+          creatureEnergy -= 20;
+          statsDisp.innerText = `HP: 250 | Energy: ${creatureEnergy} | Species: Dragon`;
+          habitatLog.innerHTML = '<span class="text-rose-400 font-bold">attack() executed!</span> Deals 50 Plasma Damage! Energy: ' + creatureEnergy;
+          sprite.style.transform = "scale(1.2) rotate(10deg)";
+          setTimeout(() => sprite.style.transform = "scale(1) rotate(0deg)", 400);
+        } else {
+          habitatLog.innerText = "Cannot attack: Out of energy! Call eat() or sleep() first.";
+        }
+      } else if (action === 'eat') {
+        creatureEnergy += 30;
+        statsDisp.innerText = `HP: 250 | Energy: ${creatureEnergy} | Species: Dragon`;
+        habitatLog.innerHTML = '<span class="text-emerald-400 font-bold">eat() executed!</span> Energy restored to ' + creatureEnergy;
+        confetti({ particleCount: 30, spread: 40 });
+      } else if (action === 'sleep') {
+        creatureEnergy = 100;
+        statsDisp.innerText = `HP: 250 | Energy: ${creatureEnergy} | Species: Dragon`;
+        habitatLog.innerHTML = '<span class="text-sky-400 font-bold">sleep() executed!</span> Fully revitalized to 100 Energy!';
+      }
+    }
+
+    // GAME 2: Restaurant Tycoon Live Logic
+    function compileRestaurantCode() {
+      const log = document.getElementById('rest-log');
+      const badge = document.getElementById('rest-status-badge');
+      const stove = document.getElementById('rest-stove-status');
+
+      badge.innerText = "Processing Orders via Loop...";
+      badge.className = "text-amber-400 font-bold";
+
+      setTimeout(() => {
+        stove.innerText = "Orders Cooked & Dispatched!";
+        stove.className = "text-[10px] text-emerald-400 font-mono font-bold";
+        badge.innerText = "Orders Paid! +$54 Added";
+        badge.className = "text-emerald-400 font-bold";
+        log.innerHTML = '<span class="text-emerald-400 font-bold">Java Loop Executed:</span> Calculated $54 with 10% discount! Customers satisfied!';
+        confetti({ particleCount: 75, spread: 70 });
+      }, 600);
+    }
+
+    // GAME 3: Space Colony Live Logic
+    function compileColonyCode() {
+      const log = document.getElementById('colony-log');
+      const badge = document.getElementById('colony-sync-badge');
+      const o2 = document.getElementById('colony-o2-val');
+
+      badge.innerText = "Atomic CAS Sync Active ✅";
+      badge.className = "text-emerald-400 font-bold";
+
+      setTimeout(() => {
+        o2.innerText = "830 L (Safe Consumption)";
+        log.innerHTML = '<span class="text-emerald-400 font-bold">Thread-Safe CAS Verified:</span> Multi-threaded crew safely consumed 20L without race conditions! +85 XP';
+        confetti({ particleCount: 85, spread: 75 });
+      }, 500);
+    }
+
+    // GAME 4: Java Game Studio Live Logic
+    function compileStudioCode() {
+      const log = document.getElementById('studio-log');
+      const badge = document.getElementById('studio-status-badge');
+      const btn = document.getElementById('btn-studio-fight');
+
+      badge.innerText = "Game Entity Compiled [Playable]";
+      badge.className = "text-purple-400 font-bold";
+      btn.disabled = false;
+      btn.className = "px-4 py-2 rounded-xl bg-purple-500 hover:bg-purple-400 text-white font-bold transition-all shadow-md";
+      log.innerHTML = '<span class="text-emerald-400 font-bold">Attackable interface compiled!</span> Click Attack Enemy button to test game combat!';
+      confetti({ particleCount: 70, spread: 60 });
+    }
+
+    function triggerStudioFight() {
+      const fx = document.getElementById('studio-combat-fx');
+      const enemyHp = document.getElementById('studio-enemy-hp');
+      const enemy = document.getElementById('studio-enemy');
+
+      fx.classList.remove('hidden');
+      enemyHp.innerText = "HP: 30 (-50 DMG)";
+      enemy.style.transform = "translateX(20px)";
+
+      setTimeout(() => {
+        fx.classList.add('hidden');
+        enemy.style.transform = "translateX(0px)";
+        confetti({ particleCount: 60, spread: 60 });
+      }, 800);
+    }
+
+    // GAME 5: Java Forensics Live Logic
+    function compileForensicsCode() {
+      const log = document.getElementById('forensics-log');
+      const badge = document.getElementById('forensics-badge');
+
+      badge.innerText = "HOTFIX DEPLOYED: UPTIME 100% ✅";
+      badge.className = "px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400 font-bold";
+      log.innerHTML = '<span class="text-emerald-400 font-bold">INCIDENT RESOLVED!</span> List instantiated in constructor. Zero NullPointerExceptions! +90 XP';
+      confetti({ particleCount: 100, spread: 80 });
+    }
+
+    // GAME 6: Architecture Live Logic
+    function compileArchCode() {
+      const log = document.getElementById('arch-log');
+      const btn = document.getElementById('btn-test-api');
+
+      btn.disabled = false;
+      btn.className = "px-4 py-2 rounded-xl bg-teal-500 hover:bg-teal-400 text-slate-950 font-bold shadow-md transition-all";
+      log.innerHTML = '<span class="text-teal-400 font-bold">Spring Controller Loaded on /api/v1/students!</span> Click Send Test HTTP Request.';
+      confetti({ particleCount: 65, spread: 60 });
+    }
+
+    function testRestEndpoint() {
+      const status = document.getElementById('api-status-code');
+      const json = document.getElementById('api-response-json');
+
+      status.innerText = "HTTP Status: 200 OK";
+      status.className = "text-emerald-400 font-bold";
+      json.className = "text-emerald-300 text-[11px] pt-2 whitespace-pre-wrap";
+      json.innerText = JSON.stringify([
+        { "id": 1, "name": "Aria Stark", "major": "CS" },
+        { "id": 2, "name": "Jon Snow", "major": "Software Eng" }
+      ], null, 2);
+
+      confetti({ particleCount: 90, spread: 80 });
+    }
+  </script>
+</body>
+</html>
