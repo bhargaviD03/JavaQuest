@@ -101,18 +101,23 @@ def seed_default_users(db: Session):
             hashed_password=get_password_hash(settings.DEFAULT_USER_PASSWORD),
             role="learner",
             avatar="cat-coder",
-            level=5,
-            total_xp=955,
-            current_streak=3
+            level=1,
+            total_xp=0,
+            current_streak=1
         )
         db.add(primary_user)
         db.commit()
         db.refresh(primary_user)
     else:
+        # Reset any previous test seed to clean starting state (0 XP, Level 1)
+        if primary_user.total_xp > 0 and primary_email == "bhargavi.cse03@gmail.com":
+            primary_user.total_xp = 0
+            primary_user.level = 1
+            primary_user.current_streak = 1
         # Keep password synchronized with configured setting if changed
         if not verify_password(settings.DEFAULT_USER_PASSWORD, primary_user.hashed_password):
             primary_user.hashed_password = get_password_hash(settings.DEFAULT_USER_PASSWORD)
-            db.commit()
+        db.commit()
 
     # 2. Also ensure java_learner legacy/test account exists for test suites
     test_learner = db.query(User).filter(User.username == "java_learner").first()

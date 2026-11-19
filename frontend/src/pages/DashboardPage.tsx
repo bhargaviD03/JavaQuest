@@ -88,16 +88,27 @@ export const DashboardPage: React.FC = () => {
     );
   }
 
-  // Simulated 7-day activity metrics
-  const weekDays = [
-    { day: 'Mon', count: 4, height: '65%' },
-    { day: 'Tue', count: 6, height: '85%' },
-    { day: 'Wed', count: 3, height: '50%' },
-    { day: 'Thu', count: 7, height: '95%' },
-    { day: 'Fri', count: 5, height: '75%' },
-    { day: 'Sat', count: 8, height: '100%' },
-    { day: 'Sun', count: 6, height: '80%' },
-  ];
+  // Real 7-day activity metrics computed from user submissions (starts clean for new users)
+  const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+  const maxWeeklyCount = Math.max(...(stats.weekly_activity?.map(a => a.questions_attempted) || [1]), 1);
+
+  const weekDays = (stats.weekly_activity && stats.weekly_activity.length === 7)
+    ? stats.weekly_activity.map(item => {
+        const d = new Date(item.activity_date);
+        const dayLabel = isNaN(d.getTime()) ? 'Day' : dayNames[d.getDay()];
+        const count = item.questions_attempted || 0;
+        const height = count > 0 ? `${Math.min(100, Math.max(20, Math.round((count / maxWeeklyCount) * 100)))}%` : '6px';
+        return { day: dayLabel, count, height, active: count > 0 };
+      })
+    : [
+        { day: 'Mon', count: 0, height: '6px', active: false },
+        { day: 'Tue', count: 0, height: '6px', active: false },
+        { day: 'Wed', count: 0, height: '6px', active: false },
+        { day: 'Thu', count: 0, height: '6px', active: false },
+        { day: 'Fri', count: 0, height: '6px', active: false },
+        { day: 'Sat', count: 0, height: '6px', active: false },
+        { day: 'Sun', count: 0, height: '6px', active: false },
+      ];
 
   return (
     <div className="space-y-8 animate-fadeIn max-w-7xl mx-auto">
@@ -160,14 +171,14 @@ export const DashboardPage: React.FC = () => {
             </div>
           </div>
           <div>
-            <div className="text-2xl font-black text-slate-900 dark:text-white font-mono">{stats.current_streak} Days</div>
+            <div className="text-2xl font-black text-slate-900 dark:text-white font-mono">{stats.current_streak} Day{stats.current_streak === 1 ? '' : 's'}</div>
             <p className="text-[11px] text-amber-600 dark:text-amber-400/90 font-medium mt-0.5 flex items-center gap-1">
               <TrendingUp className="w-3 h-3" />
-              <span>Top 5% consistency</span>
+              <span>{stats.total_xp === 0 ? 'Begin your streak today!' : 'Active streak'}</span>
             </p>
           </div>
           <div className="w-full bg-slate-100 dark:bg-slate-800 h-1.5 rounded-full overflow-hidden">
-            <div className="bg-gradient-to-r from-amber-500 to-orange-400 h-full rounded-full w-4/5"></div>
+            <div className="bg-gradient-to-r from-amber-500 to-orange-400 h-full rounded-full" style={{ width: `${Math.min(100, Math.max(10, stats.current_streak * 20))}%` }}></div>
           </div>
         </div>
 
@@ -199,13 +210,13 @@ export const DashboardPage: React.FC = () => {
             </div>
           </div>
           <div>
-            <div className="text-2xl font-black text-slate-900 dark:text-white font-mono">94.2%</div>
+            <div className="text-2xl font-black text-slate-900 dark:text-white font-mono">{(stats.solution_accuracy ?? 0).toFixed(1)}%</div>
             <p className="text-[11px] text-sky-600 dark:text-sky-400/90 font-medium mt-0.5 flex items-center gap-1">
-              <span>First-attempt pass rate</span>
+              <span>{stats.total_solved_questions ?? 0} solved problems</span>
             </p>
           </div>
           <div className="w-full bg-slate-100 dark:bg-slate-800 h-1.5 rounded-full overflow-hidden">
-            <div className="bg-gradient-to-r from-sky-500 to-indigo-500 h-full rounded-full w-[94%]"></div>
+            <div className="bg-gradient-to-r from-sky-500 to-indigo-500 h-full rounded-full" style={{ width: `${Math.min(100, stats.solution_accuracy ?? 0)}%` }}></div>
           </div>
         </div>
 
@@ -244,7 +255,7 @@ export const DashboardPage: React.FC = () => {
                 </p>
               </div>
               <span className="text-xs font-mono font-bold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-500/10 px-2.5 py-1 rounded-lg border border-emerald-200 dark:border-emerald-500/20">
-                39 Commits / Solves
+                {stats.weekly_commits ?? 0} Solves / Submissions
               </span>
             </div>
 

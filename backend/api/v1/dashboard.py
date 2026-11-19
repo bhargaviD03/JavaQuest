@@ -100,6 +100,15 @@ def get_dashboard_stats(current_user: User = Depends(get_current_user), db: Sess
     ).all()
     act_map = {a.activity_date: a for a in activities}
 
+    # Real calculated metrics (starts from 0 for brand-new users)
+    total_attempts = db.query(QuestionAttempt).filter(QuestionAttempt.user_id == current_user.id).count()
+    correct_attempts = db.query(QuestionAttempt).filter(
+        QuestionAttempt.user_id == current_user.id,
+        QuestionAttempt.is_correct == True
+    ).count()
+    solution_accuracy = round((correct_attempts / total_attempts * 100), 1) if total_attempts > 0 else 0.0
+    total_weekly_solves = sum(a.questions_attempted for a in activities)
+
     weekly_activity = []
     for i in range(7):
         day = seven_days_ago + timedelta(days=i)
@@ -140,6 +149,9 @@ def get_dashboard_stats(current_user: User = Depends(get_current_user), db: Sess
         "current_streak": current_user.current_streak,
         "xp_to_next_level": xp_to_next,
         "progress_to_next_level": progress_pct,
+        "solution_accuracy": solution_accuracy,
+        "total_solved_questions": correct_attempts,
+        "weekly_commits": total_weekly_solves,
         "today_institute_topic": today_institute_topic or "Method Overloading & Overriding",
         "daily_challenge": daily_challenge,
         "current_module": "Module 1: OOP Foundations",

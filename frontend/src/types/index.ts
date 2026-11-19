@@ -231,6 +231,9 @@ export interface DashboardStats {
   current_streak: number;
   xp_to_next_level: number;
   progress_to_next_level: number;
+  solution_accuracy?: number;
+  total_solved_questions?: number;
+  weekly_commits?: number;
   today_institute_topic?: string;
   daily_challenge?: QuestionBankItem;
   current_module?: string;

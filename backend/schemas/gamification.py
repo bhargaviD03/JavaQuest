@@ -47,6 +47,9 @@ class DashboardStats(BaseModel):
     today_institute_topic: Optional[str] = None
     daily_challenge: Optional[Any] = None
     current_module: Optional[str] = None
+    solution_accuracy: float = 0.0
+    total_solved_questions: int = 0
+    weekly_commits: int = 0
     learning_topics: List[str] = []
     revision_topics: List[str] = []
     recent_achievements: List[AchievementResponse] = []

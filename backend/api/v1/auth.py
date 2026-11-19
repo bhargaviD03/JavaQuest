@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 from sqlalchemy.orm import Session
 from core.database import get_db
-from core.security import create_access_token, create_refresh_token, decode_token
+from core.security import create_access_token, create_refresh_token, decode_token, verify_password, get_password_hash
 from models.user import User, LearningSpace, LearningSpaceMember
 from schemas.auth import (
     UserRegister,
@@ -82,10 +82,38 @@ def get_me(current_user: User = Depends(get_current_user)):
 
 @router.put("/me", response_model=UserResponse)
 def update_profile(data: UserUpdate, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    # 1. Update username
+    if data.username and data.username.strip() != current_user.username:
+        new_username = data.username.strip()
+        conflict = db.query(User).filter(User.username.ilike(new_username), User.id != current_user.id).first()
+        if conflict:
+            raise HTTPException(status_code=400, detail="This username is already taken by another user.")
+        current_user.username = new_username
+
+    # 2. Update email
+    if data.email and data.email.strip().lower() != current_user.email:
+        new_email = data.email.strip().lower()
+        conflict = db.query(User).filter(User.email.ilike(new_email), User.id != current_user.id).first()
+        if conflict:
+            raise HTTPException(status_code=400, detail="An account with this email address already exists.")
+        current_user.email = new_email
+
+    # 3. Update avatar
     if data.avatar:
         current_user.avatar = data.avatar
+
+    # 4. Update role
     if data.role and data.role in ["learner", "companion"]:
         current_user.role = data.role
+
+    # 5. Change Password securely
+    if data.new_password:
+        if not data.current_password:
+            raise HTTPException(status_code=400, detail="Current password is required to change password.")
+        if not verify_password(data.current_password, current_user.hashed_password):
+            raise HTTPException(status_code=400, detail="Current password does not match.")
+        current_user.hashed_password = get_password_hash(data.new_password)
+
     db.commit()
     db.refresh(current_user)
     return current_user

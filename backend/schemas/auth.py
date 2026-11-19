@@ -43,8 +43,12 @@ class UserResponse(BaseModel):
         from_attributes = True
 
 class UserUpdate(BaseModel):
+    username: Optional[str] = Field(None, min_length=3, max_length=50)
+    email: Optional[EmailStr] = None
     avatar: Optional[str] = None
-    role: Optional[str] = None
+    role: Optional[str] = Field(None, pattern="^(learner|companion)$")
+    current_password: Optional[str] = None
+    new_password: Optional[str] = Field(None, min_length=6)
 
 class SpaceCreate(BaseModel):
     name: str = Field(..., min_length=2, max_length=100)
