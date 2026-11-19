@@ -28,6 +28,7 @@ from services.roadmap_service import seed_roadmap
 from services.project_service import seed_projects
 from services.question_service import ensure_question_bank_seeded
 from services.exercise_service import seed_interactive_exercises
+from services.game_service import seed_default_game_levels
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -43,6 +44,7 @@ async def lifespan(app: FastAPI):
         seed_projects(db)
         ensure_question_bank_seeded(db)
         seed_interactive_exercises(db)
+        seed_default_game_levels(db)
     except Exception as e:
         print(f"Warning during seed: {e}")
     finally:

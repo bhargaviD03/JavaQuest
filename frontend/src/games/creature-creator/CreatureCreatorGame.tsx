@@ -8,10 +8,11 @@ import { gameBridge } from '../engine/GameBridge';
 import { api } from '../../services/api';
 import { gameService } from '../../services/gameService';
 import { ExecutionResult } from '../components/MonacoJavaEditor';
+import { CREATURE_CREATOR_LEVELS } from './config/levels';
 
 export const CreatureCreatorGame: React.FC = () => {
-  const [levels, setLevels] = useState<LevelDefinition[]>([]);
-  const [isLoadingLevels, setIsLoadingLevels] = useState(true);
+  const [levels, setLevels] = useState<LevelDefinition[]>(CREATURE_CREATOR_LEVELS);
+  const [isLoadingLevels, setIsLoadingLevels] = useState(false);
   const [currentLevelIndex, setCurrentLevelIndex] = useState(0);
   const [isHatched, setIsHatched] = useState(false);
   const gameMeta = GAME_REGISTRY['creature-creator'];
@@ -20,9 +21,11 @@ export const CreatureCreatorGame: React.FC = () => {
     async function loadLevels() {
       try {
         const dbLevels = await gameService.getGameLevels('creature-creator');
-        setLevels(dbLevels.map(gameService.formatLevel));
+        if (dbLevels && dbLevels.length > 0) {
+          setLevels(dbLevels.map(gameService.formatLevel));
+        }
       } catch (err) {
-        console.error('Failed to load levels from database', err);
+        console.warn('Failed to load levels from database, retaining local blueprints', err);
       } finally {
         setIsLoadingLevels(false);
       }
@@ -79,7 +82,7 @@ export const CreatureCreatorGame: React.FC = () => {
     });
   };
 
-  if (isLoadingLevels || levels.length === 0) {
+  if (isLoadingLevels && levels.length === 0) {
     return (
       <div className="min-h-[500px] flex items-center justify-center bg-slate-950 rounded-2xl border border-slate-800 text-slate-400">
         <div className="flex flex-col items-center gap-3">
